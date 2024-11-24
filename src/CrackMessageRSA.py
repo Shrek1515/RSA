@@ -1,10 +1,14 @@
 import linecache
+from pathlib import Path
+
 import LogicielRSA
 
 def find_contact(auteur, destinataire):
     """Str x Str --> Tuple
     Retourne les lignes ou se trouve le nom de l'auteur et du destinataire entrés dans l'annuaire"""
-    annuaire = open("../res/annuaire.txt", "r")
+    repertoire_courant = Path(__file__).parent
+    chemin_public = repertoire_courant.parent / 'res' / 'annuaire.txt'
+    annuaire = open(chemin_public, "r")
     datafile = annuaire.readlines()
     ligne = 0
     la, ld = False, False
@@ -22,32 +26,39 @@ def find_contact(auteur, destinataire):
 def find_n(lignes):
     """Tuple --> Tuple
     Retourne les n de l'auteur et du destinataire"""
-    annuaire = open("../res/annuaire.txt", "r")
+    repertoire_courant = Path(__file__).parent
+    chemin_public = repertoire_courant.parent/'res'/'annuaire.txt'
+    annuaire = open(chemin_public, "r")
     line = annuaire.readlines()
     ligne_na = lignes[0] + 2
     ligne_nd = lignes[1] + 2
-    na = int(linecache.getline('../res/annuaire.txt', ligne_na)[:-1])
-    nb = int(linecache.getline('../res/annuaire.txt', ligne_nd)[:-1])
+    na = int(linecache.getline(str(chemin_public), ligne_na)[:-1])
+    nb = int(linecache.getline(str(chemin_public), ligne_nd)[:-1])
     annuaire.close()
     return na,nb
 
 def find_clepubl(lignes):
     """Tuple --> Tuple
     Retourne les clé publiques de l'auteur et du destinataire"""
-    annuaire = open("annuaire.txt", "r")
+    repertoire_courant = Path(__file__).parent
+    chemin_public = repertoire_courant.parent/'res'/'annuaire.txt'
+    annuaire = open(chemin_public, "r")
     line = annuaire.readlines()
     ligne_ea = lignes[0] + 1
     ligne_ed = lignes[1] + 1
-    ea = int(linecache.getline('../res/annuaire.txt', ligne_ea)[:-1])
-    ed = int(linecache.getline('../res/annuaire.txt', ligne_ed)[:-1])
+    ea = int(linecache.getline(str(chemin_public), ligne_ea)[:-1])
+    ed = int(linecache.getline(str(chemin_public), ligne_ed)[:-1])
     annuaire.close()
     return ea, ed
 
 def BobCrack(fichier, alice, dB, nB,s, v):
     """str x str x int x int -> str
     Decode un fichier et renvoie le nom du fichier decodé"""
-    annuaire = open("../res/annuaire.txt", "r")
-    annuairePriv = open("../res/annuairePriv.txt", "r")
+    repertoire_courant = Path(__file__).parent
+    chemin_public = repertoire_courant.parent/'res'/'annuaire.txt'
+    chemin_prive = repertoire_courant.parent/'res'/'annuairePriv.txt'
+    annuaire = open(chemin_public, "r")
+    annuairePriv = open(chemin_prive, "r")
     l = []
     for line in annuaire:
         if line[-1] == "\n":
@@ -60,12 +71,18 @@ def BobCrack(fichier, alice, dB, nB,s, v):
             dA = int(l[u + 1])
             nA = int(l[u + 2])
             break
-    nom_Fichier = "../message/"+fichier+".txt"
-    nom_Fichier_deux = "../message/"+fichier + "decrypte.txt"
-    fichier = open(nom_Fichier, "r+")
-    fichier2 = open(nom_Fichier_deux, "w")
+
+    nom_Fichier = repertoire_courant.parent / 'message' / f"{fichier}.txt"
+    fichier1 = open(nom_Fichier, "r")
+    nom_Fichier2 = repertoire_courant.parent / 'message' / f"{fichier}decrypte.txt"
+    fichier2 = open(nom_Fichier2, "w")
+
+    #nom_Fichier = "../message/"+fichier+".txt"
+    #nom_Fichier_deux = "../message/"+fichier + "decrypte.txt"
+    #fichier = open(nom_Fichier, "r+")
+    #fichier2 = open(nom_Fichier_deux, "w")
     la = []
-    for line in fichier:
+    for line in fichier1:
         if line[-1] == "\n":
             la.append(line[:-1])
         else:
@@ -100,7 +117,7 @@ def BobCrack(fichier, alice, dB, nB,s, v):
                     lb = lb[:-1]
                 c = LogicielRSA.decodage_ascii_triplet(lb, dB, nB)
                 fichier2.write(c + "\n")
-    fichier.close()
+    fichier1.close()
     fichier2.close()
     annuaire.close()
-    return nom_Fichier_deux
+    return f"{fichier}decrypte.txt"

@@ -82,7 +82,7 @@ def codage_ascii_triplet(caractere, e, n):
   crypte = [str(pow(int(i), e, n)) for i in ascii_triplet]
   return crypte
 
-print("ceci est un test =", codage_ascii_triplet("ceci est un test", 177952868483,199832434357))
+#print("ceci est un test =", codage_ascii_triplet("ceci est un test", 177952868483,199832434357))
 
 def decodage_ascii_triplet(crypte, d, n):
   """ List x Int x Int --> Str

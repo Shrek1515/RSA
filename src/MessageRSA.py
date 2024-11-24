@@ -1,5 +1,6 @@
 import LogicielRSA
 import CrackMessageRSA as CMRSA
+from pathlib import Path
 
 ##################### FONCTIONS ############
 
@@ -32,8 +33,11 @@ def Annuaire(nom,niveau):
 def Alice(alice, fichier, bob, s):
     """str x str x str x int x int -> str
     Code un fichier avec une signature, renvoie le nom du fichier codé"""
-    annuaire = open("../res/annuaire.txt", "r")
-    annuairePriv = open("../res/annuairePriv.txt", "r")
+    repertoire_courant = Path(__file__).parent
+    chemin_public = repertoire_courant.parent/'res'/'annuaire.txt'
+    chemin_prive = repertoire_courant.parent/'res'/'annuairePriv.txt'
+    annuaire = open(chemin_public, "r")
+    annuairePriv = open(chemin_prive, "r")
     l = []
     for line in annuaire :
         if line[-1] == "\n":
@@ -58,9 +62,9 @@ def Alice(alice, fichier, bob, s):
             dA = int(lPriv[u+1])
             nA = int(lPriv[u+2])
             break
-    nom_Fichier = "../message/"+fichier + ".txt"
+    nom_Fichier = repertoire_courant.parent/'message'/f"{fichier}.txt"
     fichier1 = open(nom_Fichier, "r")
-    nom_Fichier2 = "../message/"+fichier + "_Code.txt"
+    nom_Fichier2 = repertoire_courant.parent/'message'/f"{fichier}_Code.txt"
     fichier2 = open(nom_Fichier2, "w")
     la = []
     for line in fichier1:
@@ -83,13 +87,18 @@ def Alice(alice, fichier, bob, s):
     fichier2.close()
     annuaire.close()
     annuairePriv.close()
-    return nom_Fichier2
+    return f"{fichier}_Code.txt"
 
 def Bob(fichier, alice, bob, s, v):
     """str x str x int x int -> str
     Decode un fichier et renvoie le nom du fichier decodé"""
-    annuaire = open("../res/annuaire.txt", "r")
-    annuairePriv = open("../res/annuairePriv.txt", "r")
+    #annuaire = open("../res/annuaire.txt", "r")
+    #annuairePriv = open("../res/annuairePriv.txt", "r")
+    repertoire_courant = Path(__file__).parent
+    chemin_public = repertoire_courant.parent/'res'/'annuaire.txt'
+    chemin_prive = repertoire_courant.parent/'res'/'annuairePriv.txt'
+    annuaire = open(chemin_public, "r")
+    annuairePriv = open(chemin_prive, "r")
     l = []
     for line in annuaire:
         if line[-1] == "\n":
@@ -114,12 +123,16 @@ def Bob(fichier, alice, bob, s, v):
             dB = int(lPriv[u + 1])
             nB = int(l[u + 2])
             break
-    nom_Fichier = "../message/"+fichier+".txt"
-    nom_Fichier_deux = "../message/"+fichier + "decrypte.txt"
-    fichier = open(nom_Fichier, "r+")
+    #nom_Fichier = "../message/"+fichier+".txt"
+    #nom_Fichier_deux = "../message/"+fichier + "decrypte.txt"
+
+    nom_Fichier = repertoire_courant.parent/'message'/f"{fichier}.txt"
+    nom_Fichier_deux = repertoire_courant.parent/'message'/f"{fichier}decrypte.txt"
+
+    fichier1 = open(nom_Fichier, "r+")
     fichier2 = open(nom_Fichier_deux, "w")
     la = []
-    for line in fichier:
+    for line in fichier1:
         if line[-1] == "\n":
             la.append(line[:-1])
         else:
@@ -154,78 +167,41 @@ def Bob(fichier, alice, bob, s, v):
                     lb = lb[:-1]
                 c = LogicielRSA.decodage_ascii_triplet(lb, dB, nB)
                 fichier2.write(c + "\n")
-    fichier.close()
+    fichier1.close()
     fichier2.close()
     annuaire.close()
     annuairePriv.close()
-    return nom_Fichier_deux
+    return f"{fichier}decrypte.txt"
 
 ##################### EXECUTION ############
 
-saisie = "oui"
+def main():
+    saisie = "oui"
 
-while saisie != "s":
-    s = False
-    v = False
-    saisie = input("Que voulez-vous faire ? Inscription (i) - Envoi (e) - Reception (r) - craquer (c) - stop (s) : ")
-    if saisie.lower() == "i":
-        nom = input("Entrez votre nom : ")
-        niveau = input("Choisissez votre niveau de sécurité: facile (f) - moyen (m) - difficile (d) : ")
-        print(" Info sur le contact : ", Annuaire(nom, niveau))
-    elif saisie.lower() == "e":
-        alice = input("Entrez votre nom : ")
-        bob = input("Entrez le destinataire : ")
-        fichier = input("Entrez le nom du fichier à coder : ")
-        sn = input("Voulez-vous ajouter une signature ? oui - non : ")
-        if sn.lower() == "oui": s = True
-        print("voici le nom du fichier crypté : ", Alice(alice, fichier, bob, s))
-    elif saisie.lower() == "r":
-        bob = input("Entrez votre nom : ")
-        alice = input("Entrez le nom de l'envoyeur : ")
-        fichier = input("Entrez le nom du fichier à decoder : ")
-        nom_Fichier = "../message/"+fichier + ".txt"
-        fichier1 = open(nom_Fichier, "r")
-        la = []
-        for line in fichier1:
-            if line[-1] == "\n":
-                la.append(line[:-1])
-            else:
-                la.append(line)
-        if "signature" in la:
-            v = True
-            sn = input("Voulez-vous décoder la signature ? oui - non : ")
-            if sn.lower() == "oui":
-                s = True
-        print("Voici le nom du fichier decrypté : ", Bob(fichier, alice, bob, s, v))
-    elif saisie.lower() == "c":
-        auteur = input("Entrez l'auteur du message que vous voulez décoder : ")
-        destinataire = input("Entrez le destinataire : ")
-        fichier = input("Entrez le nom du fichier à decoder : ")
-        tmp = int(input("Combien de temps en seconde voulez-vous alouer au cassage de la clé ? "))
-        contacts = CMRSA.find_contact(auteur, destinataire)
-        n = CMRSA.find_n(contacts)
-        e = CMRSA.find_clepubl(contacts)
-        pa = LogicielRSA.rho_pollard(n[0], tmp)
-        pd = LogicielRSA.rho_pollard(n[1], tmp)
-        da = False
-        dd = False
-        if type(pa) == str:
-            print("la clé privée de l'auteur est trop longue pour être cassée")
-        else:
-            qa = (n[0]) // pa
-            da = LogicielRSA.generateur_cassage(pa, qa, e[0])
-            print("Le n de l'auteur: ", n[0], "Clé publique de l'auteur: ", e[0], "Clé privée de l'auteur : ", da)
-        if type(pd) == str:
-            print("la clé privée du destinataire est trop longue pour être cassée")
-        else:
-            qd = (n[1]) // pd
-            dd = LogicielRSA.generateur_cassage(pd, qd, e[1])
-            print("Le n du destinataire: ", n[1], "Clé publique du destinataire: ", e[1], "Clé privée du destinataire : ", dd)
-        if da != False and dd != False:
-            s = False
-            la = []
-            nom_Fichier = "../message/"+fichier + ".txt"
+    while saisie != "s":
+        s = False
+        v = False
+        saisie = input("Que voulez-vous faire ? Inscription (i) - Envoi (e) - Reception (r) - craquer (c) - stop (s) : ")
+        if saisie.lower() == "i":
+            nom = input("Entrez votre nom : ")
+            niveau = input("Choisissez votre niveau de sécurité: facile (f) - moyen (m) - difficile (d) : ")
+            print(" Info sur le contact : ", Annuaire(nom, niveau))
+        elif saisie.lower() == "e":
+            alice = input("Entrez votre nom : ")
+            bob = input("Entrez le destinataire : ")
+            fichier = input("Entrez le nom du fichier à coder : ")
+            sn = input("Voulez-vous ajouter une signature ? oui - non : ")
+            if sn.lower() == "oui": s = True
+            print("voici le nom du fichier crypté : ", Alice(alice, fichier, bob, s))
+        elif saisie.lower() == "r":
+            bob = input("Entrez votre nom : ")
+            alice = input("Entrez le nom de l'envoyeur : ")
+            fichier = input("Entrez le nom du fichier à decoder : ")
+            repertoire_courant = Path(__file__).parent
+            #nom_Fichier = "../message/"+fichier + ".txt"
+            nom_Fichier = repertoire_courant.parent/'message'/f"{fichier}.txt"
             fichier1 = open(nom_Fichier, "r")
+            la = []
             for line in fichier1:
                 if line[-1] == "\n":
                     la.append(line[:-1])
@@ -236,4 +212,44 @@ while saisie != "s":
                 sn = input("Voulez-vous décoder la signature ? oui - non : ")
                 if sn.lower() == "oui":
                     s = True
-            print("Voici le nom du fichier decrypté : ", CMRSA.BobCrack(fichier, auteur, dd, n[1], s, v))
+            print("Voici le nom du fichier decrypté : ", Bob(fichier, alice, bob, s, v))
+        elif saisie.lower() == "c":
+            auteur = input("Entrez l'auteur du message que vous voulez décoder : ")
+            destinataire = input("Entrez le destinataire : ")
+            fichier = input("Entrez le nom du fichier à decoder : ")
+            tmp = int(input("Combien de temps en seconde voulez-vous alouer au cassage de la clé ? "))
+            contacts = CMRSA.find_contact(auteur, destinataire)
+            n = CMRSA.find_n(contacts)
+            e = CMRSA.find_clepubl(contacts)
+            pa = LogicielRSA.rho_pollard(n[0], tmp)
+            pd = LogicielRSA.rho_pollard(n[1], tmp)
+            da = False
+            dd = False
+            if type(pa) == str:
+                print("la clé privée de l'auteur est trop longue pour être cassée")
+            else:
+                qa = (n[0]) // pa
+                da = LogicielRSA.generateur_cassage(pa, qa, e[0])
+                print("Le n de l'auteur: ", n[0], "Clé publique de l'auteur: ", e[0], "Clé privée de l'auteur : ", da)
+            if type(pd) == str:
+                print("la clé privée du destinataire est trop longue pour être cassée")
+            else:
+                qd = (n[1]) // pd
+                dd = LogicielRSA.generateur_cassage(pd, qd, e[1])
+                print("Le n du destinataire: ", n[1], "Clé publique du destinataire: ", e[1], "Clé privée du destinataire : ", dd)
+            if da != False and dd != False:
+                s = False
+                la = []
+                nom_Fichier = "../message/"+fichier + ".txt"
+                fichier1 = open(nom_Fichier, "r")
+                for line in fichier1:
+                    if line[-1] == "\n":
+                        la.append(line[:-1])
+                    else:
+                        la.append(line)
+                if "signature" in la:
+                    v = True
+                    sn = input("Voulez-vous décoder la signature ? oui - non : ")
+                    if sn.lower() == "oui":
+                        s = True
+                print("Voici le nom du fichier decrypté : ", CMRSA.BobCrack(fichier, auteur, dd, n[1], s, v))
