@@ -8,8 +8,11 @@ def Annuaire(nom,niveau):
     """str -> int x int x int
     permet d'inscrire une personne dans un annuaire et lui renvoie ses coordonnées privées et publiques
     seules les coordonnées publique sont inscrites dans l'annuaire"""
-    annuaire = open("../res/annuaire.txt", "a")
-    annuairePriv = open("../res/annuairePriv.txt", "a")
+    repertoire_courant = Path(__file__).parent
+    chemin_public = repertoire_courant.parent/'res'/'annuaire.txt'
+    chemin_prive = repertoire_courant.parent/'res'/'annuairePriv.txt'
+    annuaire = open(chemin_public, "a")
+    annuairePriv = open(chemin_prive, "a")
     if niveau.lower() == "f":
         n = 20
     elif niveau.lower() == "m":
